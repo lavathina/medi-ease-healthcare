@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctor Chat</title>
+  <style>
+    body { font-family: Arial; }
+    #chat-box { width: 400px; height: 300px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; }
+    #message-input { width: 300px; }
+  </style>
+</head>
+<body>
+
+<h2>Real-Time Doctor Chat</h2>
+
+<div id="chat-box"></div>
+
+<input type="text" id="message-input" placeholder="Type your message...">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+function sendMessage() {
+  const input = document.getElementById('message-input');
+  const text = input.value.trim();
+  if (text === '') {
+    alert("Please type a message");
+    return;
+  }
+
+ fetch('send_message.php', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ message: text })  // <--- this must be correct
+})
+
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === "success") {
+      input.value = "";
+      loadMessages(); // Refresh messages
+    } else {
+      alert("Error: " + data.message);
+    }
+  });
+}
+
+function loadMessages() {
+  fetch('fetch_messages.php')
+    .then(res => res.json())
+    .then(data => {
+      const box = document.getElementById('chat-box');
+      box.innerHTML = '';
+      data.forEach(msg => {
+        box.innerHTML += `<p><strong>${msg.sender}:</strong> ${msg.message}</p>`;
+      });
+      box.scrollTop = box.scrollHeight;
+    });
+}
+
+// Refresh chat every 3 seconds
+setInterval(loadMessages, 3000);
+</script>
+
+</body>
+</html>

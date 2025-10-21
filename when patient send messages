@@ -1,0 +1,22 @@
+<?php
+session_start();
+include "includes/db.php";
+include "includes/telegram.php";
+
+$BOT_TOKEN = "8391775934:AAH4rmbLF1NpAMa4PC23MgCM3QFjXzZbEd0";
+$DOCTOR_CHAT_ID = "1140058358"; // your personal Telegram chat_id
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $message = $_POST["message"];
+    $web_user_id = $_SESSION["user_id"]; 
+
+    // Save in DB
+    $stmt = $pdo->prepare("INSERT INTO chat_messages (web_user_id, sender, message) VALUES (:w,'web',:m)");
+    $stmt->execute([':w'=>$web_user_id, ':m'=>$message]);
+
+    // Send to Telegram
+    sendTelegramMessage($BOT_TOKEN, $DOCTOR_CHAT_ID, "Patient #$web_user_id: $message");
+
+    echo "Message sent!";
+}
+?>
